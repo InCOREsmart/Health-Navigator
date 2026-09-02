@@ -1,6 +1,6 @@
 {
   "name": "health-navigator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
@@ -12,10 +12,14 @@
   "dependencies": {
     "@supabase/supabase-js": "latest",
     "expo": "latest",
+    "expo-audio": "latest",
+    "expo-image-picker": "latest",
     "expo-router": "latest",
+    "expo-speech": "latest",
     "expo-status-bar": "latest",
     "react": "latest",
     "react-native": "latest",
+    "react-native-health-connect": "latest",
     "react-native-safe-area-context": "latest",
     "react-native-screens": "latest",
     "react-native-url-polyfill": "latest"
