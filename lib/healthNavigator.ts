@@ -23,6 +23,10 @@ export type EpisodeHistoryItem = {
   id: string; title: string; status: string; current_step: string | null; next_action: string | null;
   completeness_score: number | null; created_at: string; updated_at: string;
 };
+export type HealthMeasurement = {
+  id: string; user_id: string; type: string; value: number; unit: string; source: string;
+  measured_at: string; metadata: Record<string, unknown>; created_at: string;
+};
 
 export async function searchTraditional(query: string) {
   const clean = query.trim(); if (!clean) return [] as TraditionalPractice[];
@@ -61,9 +65,7 @@ export async function getEpisode(episodeId: string) {
   const payload = data as { episode?: Record<string, unknown>; next_question?: EpisodeQuestion };
   const e = payload.episode ?? {};
   return {
-    ...(e as EpisodeResult),
-    episode_id: String(e.id ?? episodeId),
-    status: String(e.status ?? 'collecting'),
+    ...(e as EpisodeResult), episode_id: String(e.id ?? episodeId), status: String(e.status ?? 'collecting'),
     next_question: payload.next_question,
     completeness_score: typeof e.completeness_score === 'number' ? e.completeness_score : undefined,
   } as EpisodeResult;
@@ -73,6 +75,14 @@ export async function listEpisodes(limit = 30) {
     .select('id,title,status,current_step,next_action,completeness_score,created_at,updated_at')
     .order('updated_at', { ascending: false }).limit(limit);
   if (error) throw error; return (data ?? []) as EpisodeHistoryItem[];
+}
+export async function recordMeasurement(type: string, value: number, unit: string, source = 'manual', measuredAt = new Date().toISOString(), metadata: Record<string, unknown> = {}) {
+  const { data, error } = await supabase.rpc('hos_record_measurement', { p_type: type, p_value: value, p_unit: unit, p_source: source, p_measured_at: measuredAt, p_metadata: metadata });
+  if (error) throw error; return data as HealthMeasurement;
+}
+export async function listMeasurements(limit = 100) {
+  const { data, error } = await supabase.rpc('hos_list_measurements', { p_limit: limit });
+  if (error) throw error; return (data ?? []) as HealthMeasurement[];
 }
 
 // Codes here are deliberately restricted to the vocabulary registered in hos_symptoms.
