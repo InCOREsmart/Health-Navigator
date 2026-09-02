@@ -19,6 +19,10 @@ export type EpisodeResult = {
   snapshot?: Record<string, unknown>; clinical_snapshot?: Record<string, unknown>;
   next_question?: EpisodeQuestion; completeness_score?: number; safety_flag_count?: number;
 };
+export type EpisodeHistoryItem = {
+  id: string; title: string; status: string; current_step: string | null; next_action: string | null;
+  completeness_score: number | null; created_at: string; updated_at: string;
+};
 
 export async function searchTraditional(query: string) {
   const clean = query.trim(); if (!clean) return [] as TraditionalPractice[];
@@ -47,14 +51,19 @@ export async function createEpisodeWithSymptoms(title: string, symptoms: Array<{
 }
 export async function submitAnswer(episodeId: string, question: EpisodeQuestion, answer: unknown) {
   const { data, error } = await supabase.rpc('hos_submit_answer', {
-    p_episode_id: episodeId, p_question_code: question.code, p_question: question.question,
-    p_answer: answer, p_source: 'user',
+    p_episode_id: episodeId, p_question_code: question.code, p_question: question.question, p_answer: answer, p_source: 'user',
   });
   if (error) throw error; return data as EpisodeResult;
 }
 export async function getEpisode(episodeId: string) {
   const { data, error } = await supabase.rpc('hos_get_episode', { p_episode_id: episodeId });
   if (error) throw error; return data as Record<string, unknown>;
+}
+export async function listEpisodes(limit = 30) {
+  const { data, error } = await supabase.from('hos_episodes')
+    .select('id,title,status,current_step,next_action,completeness_score,created_at,updated_at')
+    .order('updated_at', { ascending: false }).limit(limit);
+  if (error) throw error; return (data ?? []) as EpisodeHistoryItem[];
 }
 export function extractSymptoms(text: string) {
   const value = text.toLowerCase();
