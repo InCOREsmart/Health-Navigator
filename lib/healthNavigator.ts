@@ -75,6 +75,8 @@ export async function listEpisodes(limit = 30) {
   if (error) throw error; return (data ?? []) as EpisodeHistoryItem[];
 }
 
+// Codes here are deliberately restricted to the vocabulary registered in hos_symptoms.
+// Safety-critical free text is not silently converted into invented clinical codes.
 export function extractSymptoms(text: string) {
   const value = text.toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
   const rules: Array<{ code: string; words: string[] }> = [
@@ -91,28 +93,18 @@ export function extractSymptoms(text: string) {
     { code: 'sore_throat', words: ['болит горло', 'боль в горле', 'першит в горле'] },
     { code: 'fever', words: ['температура', 'жар', 'лихорадка', 'озноб'] },
     { code: 'headache', words: ['головная боль', 'болит голова', 'голова болит'] },
-    { code: 'dizziness', words: ['головокружение', 'кружится голова', 'мутит голову'] },
-    { code: 'fainting', words: ['обморок', 'потерял сознание', 'потеряла сознание', 'теряю сознание'] },
-    { code: 'weakness', words: ['слабость', 'сильно слабый', 'сильно слабая'] },
-    { code: 'fatigue', words: ['усталость', 'утомляемость', 'постоянно устаю', 'нет сил'] },
-    { code: 'numbness', words: ['онемение', 'онемела', 'онемел', 'немеет'] },
-    { code: 'speech_problem', words: ['нарушилась речь', 'не могу говорить', 'речь стала невнятной', 'не могу произнести'] },
-    { code: 'vision_problem', words: ['резко ухудшилось зрение', 'плохо вижу', 'двоится', 'двоение в глазах'] },
+    { code: 'dizziness', words: ['головокружение', 'кружится голова'] },
     { code: 'itching', words: ['зуд', 'чешется', 'сильно чешется'] },
     { code: 'rash', words: ['сыпь', 'высыпания', 'пятна на коже'] },
-    { code: 'swelling', words: ['отек', 'опухоль', 'опухло', 'опухла'] },
     { code: 'back_pain', words: ['болит спина', 'боль в спине', 'спина болит'] },
-    { code: 'neck_pain', words: ['болит шея', 'боль в шее', 'шея болит'] },
     { code: 'joint_pain', words: ['болят суставы', 'боль в суставах', 'суставы болят'] },
-    { code: 'muscle_pain', words: ['болят мышцы', 'боль в мышцах', 'мышцы болят'] },
-    { code: 'frequent_urination', words: ['часто мочусь', 'частое мочеиспускание', 'часто хожу в туалет по-маленькому'] },
-    { code: 'urinary_pain', words: ['жжет при мочеиспускании', 'жжение при мочеиспускании', 'больно мочиться', 'больно писать'] },
-    { code: 'blood_in_urine', words: ['кровь в моче', 'моча с кровью'] },
-    { code: 'pelvic_pain', words: ['болит низ живота', 'боль внизу живота', 'тазовая боль'] },
+    { code: 'weakness', words: ['слабость', 'сильно слабый', 'сильно слабая'] },
+    { code: 'fatigue', words: ['усталость', 'утомляемость', 'постоянно устаю', 'нет сил'] },
     { code: 'anxiety', words: ['тревога', 'тревожно', 'сильная тревога', 'паника', 'паническая атака'] },
     { code: 'low_mood', words: ['подавленность', 'плохое настроение', 'ничего не радует'] },
     { code: 'sleep_problem', words: ['не сплю', 'бессонница', 'плохо сплю', 'не могу уснуть'] },
-    { code: 'self_harm_thoughts', words: ['хочу причинить себе вред', 'хочу навредить себе', 'не хочу жить', 'мысли о самоубийстве'] },
+    { code: 'frequent_urination', words: ['часто мочусь', 'частое мочеиспускание', 'часто хожу в туалет по-маленькому'] },
+    { code: 'urinary_pain', words: ['жжет при мочеиспускании', 'жжение при мочеиспускании', 'больно мочиться', 'больно писать'] },
   ];
   return rules.filter(rule => rule.words.some(word => value.includes(word))).map(rule => ({ code: rule.code, severity: 0, notes: text.trim() }));
 }
