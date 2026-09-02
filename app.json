@@ -2,11 +2,24 @@
   "expo": {
     "name": "Health Navigator",
     "slug": "health-navigator",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "scheme": "healthnavigator",
     "userInterfaceStyle": "automatic",
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      "expo-image-picker",
+      "expo-audio",
+      "react-native-health-connect"
+    ],
+    "android": {
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACTIVITY_RECOGNITION"
+      ],
+      "package": "com.incore.healthnavigator"
+    },
     "experiments": {"typedRoutes": true}
   }
 }
