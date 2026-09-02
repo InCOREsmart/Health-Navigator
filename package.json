@@ -3,29 +3,9 @@
   "version": "0.2.0",
   "private": true,
   "main": "expo-router/entry",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web"
-  },
+  "scripts": {"start":"expo start","android":"expo run:android","ios":"expo run:ios","web":"expo start --web"},
   "dependencies": {
-    "@supabase/supabase-js": "latest",
-    "expo": "latest",
-    "expo-audio": "latest",
-    "expo-image-picker": "latest",
-    "expo-router": "latest",
-    "expo-speech": "latest",
-    "expo-status-bar": "latest",
-    "react": "latest",
-    "react-native": "latest",
-    "react-native-health-connect": "latest",
-    "react-native-safe-area-context": "latest",
-    "react-native-screens": "latest",
-    "react-native-url-polyfill": "latest"
+    "@supabase/supabase-js":"latest","expo":"latest","expo-audio":"latest","expo-image-picker":"latest","expo-router":"latest","expo-speech":"latest","expo-speech-recognition":"latest","expo-status-bar":"latest","react":"latest","react-native":"latest","react-native-health-connect":"latest","react-native-safe-area-context":"latest","react-native-screens":"latest","react-native-url-polyfill":"latest"
   },
-  "devDependencies": {
-    "@types/react": "latest",
-    "typescript": "latest"
-  }
+  "devDependencies":{"@types/react":"latest","typescript":"latest"}
 }
