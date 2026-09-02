@@ -26,10 +26,12 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Normalize Expo dependencies
+        run: npx expo install --fix
       - name: Export Expo web app
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://gtlajttecydbjkswichv.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bGFqdHRlY3lkYmprc3dpY2h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNjIxMDIsImV4cCI6MjEwMzkzODEwMn0.ELmS76fBJ9D7coVeMwN31ktqNXqh8ZxtU6zFVsyvoeU
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
         run: npx expo export --platform web
       - name: Configure Pages
         uses: actions/configure-pages@v5
