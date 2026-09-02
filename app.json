@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Health Navigator",
+    "slug": "health-navigator",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "healthnavigator",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"],
+    "experiments": {"typedRoutes": true}
+  }
+}
