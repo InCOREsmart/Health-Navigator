@@ -57,7 +57,16 @@ export async function submitAnswer(episodeId: string, question: EpisodeQuestion,
 }
 export async function getEpisode(episodeId: string) {
   const { data, error } = await supabase.rpc('hos_get_episode', { p_episode_id: episodeId });
-  if (error) throw error; return data as Record<string, unknown>;
+  if (error) throw error;
+  const payload = data as { episode?: Record<string, unknown>; next_question?: EpisodeQuestion };
+  const e = payload.episode ?? {};
+  return {
+    ...(e as EpisodeResult),
+    episode_id: String(e.id ?? episodeId),
+    status: String(e.status ?? 'collecting'),
+    next_question: payload.next_question,
+    completeness_score: typeof e.completeness_score === 'number' ? e.completeness_score : undefined,
+  } as EpisodeResult;
 }
 export async function listEpisodes(limit = 30) {
   const { data, error } = await supabase.from('hos_episodes')
@@ -65,19 +74,45 @@ export async function listEpisodes(limit = 30) {
     .order('updated_at', { ascending: false }).limit(limit);
   if (error) throw error; return (data ?? []) as EpisodeHistoryItem[];
 }
+
 export function extractSymptoms(text: string) {
-  const value = text.toLowerCase();
+  const value = text.toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
   const rules: Array<{ code: string; words: string[] }> = [
-    { code: 'abdominal_pain', words: ['болит живот', 'боль в животе', 'живот болит'] }, { code: 'nausea', words: ['тошнит', 'тошнота'] },
-    { code: 'vomiting', words: ['рвота', 'рвало', 'вырвало'] }, { code: 'diarrhea', words: ['диарея', 'понос'] }, { code: 'constipation', words: ['запор'] },
-    { code: 'heartburn', words: ['изжога'] }, { code: 'chest_discomfort', words: ['болит в груди', 'боль в груди', 'дискомфорт в груди'] },
-    { code: 'palpitations', words: ['сердце колотится', 'сердцебиение', 'сердце бьется'] }, { code: 'shortness_of_breath', words: ['одышка', 'не хватает воздуха', 'тяжело дышать'] },
-    { code: 'cough', words: ['кашель', 'кашляю'] }, { code: 'sore_throat', words: ['болит горло', 'боль в горле'] }, { code: 'fever', words: ['температура', 'жар', 'лихорадка'] },
-    { code: 'headache', words: ['головная боль', 'болит голова'] }, { code: 'dizziness', words: ['головокружение', 'кружится голова'] }, { code: 'itching', words: ['зуд', 'чешется'] },
-    { code: 'rash', words: ['сыпь', 'высыпания'] }, { code: 'back_pain', words: ['болит спина', 'боль в спине'] }, { code: 'joint_pain', words: ['болят суставы', 'боль в суставах'] },
-    { code: 'weakness', words: ['слабость'] }, { code: 'fatigue', words: ['усталость', 'утомляемость'] }, { code: 'anxiety', words: ['тревога', 'тревожно'] },
-    { code: 'low_mood', words: ['подавленность', 'плохое настроение'] }, { code: 'sleep_problem', words: ['не сплю', 'бессонница', 'плохо сплю'] },
-    { code: 'frequent_urination', words: ['часто мочусь', 'частое мочеиспускание'] }, { code: 'urinary_pain', words: ['жжет при мочеиспускании', 'жжение при мочеиспускании', 'больно мочиться'] },
+    { code: 'abdominal_pain', words: ['болит живот', 'боль в животе', 'живот болит', 'болит желудок', 'боль в желудке'] },
+    { code: 'nausea', words: ['тошнит', 'тошнота', 'подташнивает'] },
+    { code: 'vomiting', words: ['рвота', 'рвало', 'вырвало', 'рвет'] },
+    { code: 'diarrhea', words: ['диарея', 'понос', 'жидкий стул'] },
+    { code: 'constipation', words: ['запор', 'не могу сходить в туалет'] },
+    { code: 'heartburn', words: ['изжога', 'жжет за грудиной', 'жжет в груди после еды'] },
+    { code: 'chest_discomfort', words: ['болит в груди', 'боль в груди', 'дискомфорт в груди', 'давит в груди', 'сжимает грудь'] },
+    { code: 'palpitations', words: ['сердце колотится', 'сердцебиение', 'сердце бьется', 'сердце сильно бьется', 'перебои в сердце'] },
+    { code: 'shortness_of_breath', words: ['одышка', 'не хватает воздуха', 'тяжело дышать', 'трудно дышать', 'задыхаюсь'] },
+    { code: 'cough', words: ['кашель', 'кашляю', 'кашляет'] },
+    { code: 'sore_throat', words: ['болит горло', 'боль в горле', 'першит в горле'] },
+    { code: 'fever', words: ['температура', 'жар', 'лихорадка', 'озноб'] },
+    { code: 'headache', words: ['головная боль', 'болит голова', 'голова болит'] },
+    { code: 'dizziness', words: ['головокружение', 'кружится голова', 'мутит голову'] },
+    { code: 'fainting', words: ['обморок', 'потерял сознание', 'потеряла сознание', 'теряю сознание'] },
+    { code: 'weakness', words: ['слабость', 'сильно слабый', 'сильно слабая'] },
+    { code: 'fatigue', words: ['усталость', 'утомляемость', 'постоянно устаю', 'нет сил'] },
+    { code: 'numbness', words: ['онемение', 'онемела', 'онемел', 'немеет'] },
+    { code: 'speech_problem', words: ['нарушилась речь', 'не могу говорить', 'речь стала невнятной', 'не могу произнести'] },
+    { code: 'vision_problem', words: ['резко ухудшилось зрение', 'плохо вижу', 'двоится', 'двоение в глазах'] },
+    { code: 'itching', words: ['зуд', 'чешется', 'сильно чешется'] },
+    { code: 'rash', words: ['сыпь', 'высыпания', 'пятна на коже'] },
+    { code: 'swelling', words: ['отек', 'опухоль', 'опухло', 'опухла'] },
+    { code: 'back_pain', words: ['болит спина', 'боль в спине', 'спина болит'] },
+    { code: 'neck_pain', words: ['болит шея', 'боль в шее', 'шея болит'] },
+    { code: 'joint_pain', words: ['болят суставы', 'боль в суставах', 'суставы болят'] },
+    { code: 'muscle_pain', words: ['болят мышцы', 'боль в мышцах', 'мышцы болят'] },
+    { code: 'frequent_urination', words: ['часто мочусь', 'частое мочеиспускание', 'часто хожу в туалет по-маленькому'] },
+    { code: 'urinary_pain', words: ['жжет при мочеиспускании', 'жжение при мочеиспускании', 'больно мочиться', 'больно писать'] },
+    { code: 'blood_in_urine', words: ['кровь в моче', 'моча с кровью'] },
+    { code: 'pelvic_pain', words: ['болит низ живота', 'боль внизу живота', 'тазовая боль'] },
+    { code: 'anxiety', words: ['тревога', 'тревожно', 'сильная тревога', 'паника', 'паническая атака'] },
+    { code: 'low_mood', words: ['подавленность', 'плохое настроение', 'ничего не радует'] },
+    { code: 'sleep_problem', words: ['не сплю', 'бессонница', 'плохо сплю', 'не могу уснуть'] },
+    { code: 'self_harm_thoughts', words: ['хочу причинить себе вред', 'хочу навредить себе', 'не хочу жить', 'мысли о самоубийстве'] },
   ];
   return rules.filter(rule => rule.words.some(word => value.includes(word))).map(rule => ({ code: rule.code, severity: 0, notes: text.trim() }));
 }
