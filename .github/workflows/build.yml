@@ -15,5 +15,6 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+      - run: npx expo install --fix
       - run: npx tsc --noEmit
       - run: npx expo export --platform web
