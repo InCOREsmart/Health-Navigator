@@ -33,11 +33,10 @@ jobs:
       - name: Export Expo web app
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://gtlajttecydbjkswichv.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bGpqTFR0ZWN5ZGJqa3N3aWNodjEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4ODM2MjEwMiwiZXhwIjoyMTAzOTM4MTAyMH0.ELmS76fBJ9D7coVeMwN31ktqNXqh8ZxtU6zFVsyvoU
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0bGpqVFR0ZWN5ZGJqa3N3aWNodjEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4ODM2MjEwMiwiZXhwIjoyMTAzOTM4MTAyMH0.ELmS76fBJ9D7coVeMwN31ktqNXqh8ZxtU6zFVsyvoU
         run: npx expo export --platform web
 
-      # Publish the static bundle without requiring the Pages API to be enabled by Actions.
-      - name: Publish to GitHub Pages branch
+      - name: Publish Health Navigator only
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
