@@ -28,7 +28,8 @@
       }
     },
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "baseUrl": "/Health-Navigator"
     }
   }
 }
