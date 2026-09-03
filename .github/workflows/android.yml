@@ -41,10 +41,10 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           path = Path("android/app/build.gradle")
           text = path.read_text()
-          import re
-          updated, count = re.subn(r"minSdkVersion\\s+[^\\n]+", "minSdkVersion 26", text, count=1)
+          updated, count = re.subn(r"minSdkVersion\s+[^\n]+", "minSdkVersion 26", text, count=1)
           if count == 0:
               raise SystemExit("Could not locate minSdkVersion in android/app/build.gradle")
           path.write_text(updated)
