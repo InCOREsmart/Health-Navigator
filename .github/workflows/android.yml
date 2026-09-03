@@ -1,0 +1,50 @@
+name: Android Health Navigator
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Normalize Expo dependencies
+        run: npx expo install --fix
+
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build Android release bundle
+        working-directory: android
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload Android bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-navigator-android-release
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
