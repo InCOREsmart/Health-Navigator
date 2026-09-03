@@ -23,7 +23,7 @@ jobs:
           node-version: 22
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -36,6 +36,21 @@ jobs:
 
       - name: Generate Android project
         run: npx expo prebuild --platform android --no-install
+
+      - name: Enforce Health Connect minimum Android SDK
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("android/app/build.gradle")
+          text = path.read_text()
+          import re
+          updated, count = re.subn(r"minSdkVersion\\s+[^\\n]+", "minSdkVersion 26", text, count=1)
+          if count == 0:
+              raise SystemExit("Could not locate minSdkVersion in android/app/build.gradle")
+          path.write_text(updated)
+          print("Android minSdkVersion forced to 26")
+          PY
+          grep -n "minSdkVersion" android/app/build.gradle
 
       - name: Build Android release bundle
         working-directory: android
