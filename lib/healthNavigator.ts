@@ -23,5 +23,34 @@ export async function listHealthData(limit=100){const{data,error}=await supabase
 export async function uploadPhoto(uri:string,episodeId:string|null,category='general',metadata:Record<string,unknown>={}){const{data:{user}}=await supabase.auth.getUser();if(!user)throw new Error('Требуется вход в аккаунт');const path=`${user.id}/${episodeId??'general'}/${Date.now()}.jpg`;const response=await fetch(uri);const body=await response.arrayBuffer();const{error:uploadError}=await supabase.storage.from('health-photos').upload(path,body,{contentType:'image/jpeg',upsert:false});if(uploadError)throw uploadError;const{data,error}=await supabase.rpc('hos_register_photo',{p_episode_id:episodeId,p_storage_path:path,p_category:category,p_metadata:metadata});if(error){await supabase.storage.from('health-photos').remove([path]);throw error}return data as HealthPhoto}
 export async function listPhotos(episodeId:string|null=null,limit=50){const{data,error}=await supabase.rpc('hos_list_photos',{p_episode_id:episodeId,p_limit:limit});if(error)throw error;return(data??[])as HealthPhoto[]}
 
-export function extractSymptoms(text:string){const value=text.toLocaleLowerCase('ru-RU').replace(/ё/g,'е');const rules:Array<{code:string;words:string[]}>= [
-{code:'abdominal_pain',words:['болит живот','боль в животе','живот болит','болит желудок','боль в желудке']},{code:'nausea',words:['тошнит','тошнота','подташнивает']},{code:'vomiting',words:['рвота','рвало','вырвало','рвет']},{code:'diarrhea',words:['диарея','понос','жидкий стул']},{code:'constipation',words:['запор','не могу сходить в туалет']},{code:'heartburn',words:['изжога','жжет за грудиной','жжет в груди после еды']},{code:'chest_discomfort',words:['болит в груди','боль в груди','дискомфорт в груди','давит в груди','сжимает грудь']},{code:'palpitations',words:['сердце колотится','сердцебиение','сердце бьется','сердце сильно бьется','перебои в сердце']},{code:'shortness_of_breath',words:['одышка','не хватает воздуха','тяжело дышать','трудно дышать','задыхаюсь']},{code:'cough',words:['кашель','кашляю','кашляет']},{code:'sore_throat',words:['болит горло','боль в горле','першит в горле']},{code:'fever',words:['температура','жар','лихорадка','озноб']},{code:'headache',words:['головная боль','болит голова','голова болит']},{code:'dizziness',words:['головокружение','кружится голова']},{code:'itching',words:['зуд','чешется','сильно чешется']},{code:'rash',words:['сыпь','высыпания','пятна на коже']},{code:'back_pain',words:['болит спина','боль в спине','спина болит']},{code:'joint_pain',words:['болят суставы','боль в суставах','суставы болят']},{code:'weakness',words:['слабость','сильно слабый','сильно слабая']},{code:'fatigue',words:['усталость','утомляемость','постоянно устаю','нет сил']},{code:'anxiety',words:['тревога','тревожно','сильная тревога','паника','паническая атака']},{code:'low_mood',words:['подавленность','плохое настроение','ничего не радует']},{code:'sleep_problem',words:['не сплю','бессонница','плохо сплю','не могу уснуть']},{code:'frequent_urination',words:['часто мочусь','частое мочеиспускание','часто хожу в туалет по-маленькому']},{code:'urinary_pain',words:['жжет при мочеиспускании','жжение при мочеиспускании','больно мочиться','больно писать']}];return rules.filter(r=>r.words.some(w=>value.includes(w))).map(r=>({code:r.code,severity:0,notes:text.trim()}))}
+export function extractSymptoms(text:string){
+ const value=text.toLocaleLowerCase('ru-RU').replace(/ё/g,'е').trim();
+ const rules:Array<{code:string;patterns:RegExp[]}>= [
+  {code:'abdominal_pain',patterns:[/бол\w*\s+(живот|животе|животe)/,/боль\w*\s+(в\s+)?(живот|животе)/,/живот\w*\s+(бол\w*|тян\w*|реж\w*|крут\w*|но\w*|тяжел\w*)/,/желуд\w*\s+(бол\w*|тян\w*|жж\w*|но\w*)/,/боль\w*\s+в\s+желуд/]},
+  {code:'nausea',patterns:[/тошн\w*/,/подташ\w*/]},
+  {code:'vomiting',patterns:[/рв\w*/,/вырв\w*/]},
+  {code:'diarrhea',patterns:[/диаре\w*/,/понос\w*/,/жидк\w*\s+стул/]},
+  {code:'constipation',patterns:[/запор\w*/,/не\s+мог\w*\s+(сходить|покак\w*)\s+в\s+туалет/]},
+  {code:'heartburn',patterns:[/изжог\w*/,/жж\w*\s+(за\s+грудиной|в\s+груд\w*\s+после\s+ед)/]},
+  {code:'chest_discomfort',patterns:[/бол\w*\s+(в\s+)?груд\w*/,/боль\w*\s+в\s+груд\w*/,/дискомфорт\w*\s+в\s+груд\w*/,/дав\w*\s+в\s+груд\w*/,/сжим\w*\s+груд\w*/]},
+  {code:'palpitations',patterns:[/сердц\w*\s+колот\w*/,/сердцеби\w*/,/сердце\s+(бьет|бьется|сильно\s+бьет)/,/перебо\w*\s+в\s+сердц/]},
+  {code:'shortness_of_breath',patterns:[/одыш\w*/,/не\s+хват\w*\s+воздух\w*/,/тяжел\w*\s+дыш\w*/,/трудн\w*\s+дыш\w*/,/задых\w*/]},
+  {code:'cough',patterns:[/кашл\w*/]},
+  {code:'sore_throat',patterns:[/бол\w*\s+горл\w*/,/боль\w*\s+в\s+горл\w*/,/перш\w*\s+в\s+горл\w*/]},
+  {code:'fever',patterns:[/температур\w*/,/жар\w*/,/лихорад\w*/,/озноб\w*/]},
+  {code:'headache',patterns:[/головн\w*\s+бол\w*/,/бол\w*\s+голов\w*/]},
+  {code:'dizziness',patterns:[/головокруж\w*/,/круж\w*\s+голов\w*/]},
+  {code:'itching',patterns:[/зуд\w*/,/чеш\w*/]},
+  {code:'rash',patterns:[/сып\w*/,/высыпан\w*/,/пятн\w*\s+на\s+кож/]},
+  {code:'back_pain',patterns:[/бол\w*\s+спин\w*/,/боль\w*\s+в\s+спин\w*/,/спин\w*\s+(бол\w*|тян\w*)/]},
+  {code:'joint_pain',patterns:[/бол\w*\s+сустав\w*/,/боль\w*\s+в\s+сустав\w*/,/сустав\w*\s+бол\w*/]},
+  {code:'weakness',patterns:[/слабост\w*/,/сильно\s+слаб\w*/]},
+  {code:'fatigue',patterns:[/усталост\w*/,/утомля\w*/,/постоянно\s+уста\w*/,/нет\s+сил/]},
+  {code:'anxiety',patterns:[/тревог\w*/,/тревож\w*/,/паник\w*/]},
+  {code:'low_mood',patterns:[/подавлен\w*/,/плох\w*\s+настроен\w*/,/ничего\s+не\s+раду\w*/]},
+  {code:'sleep_problem',patterns:[/не\s+спл\w*/,/бессонниц\w*/,/плох\w*\s+спл\w*/,/не\s+мог\w*\s+уснут\w*/]},
+  {code:'frequent_urination',patterns:[/часто\s+моч\w*/,/част\w*\s+мочеиспускан\w*/,/часто\s+ход\w*\s+в\s+туалет\s+по-маленькому/]},
+  {code:'urinary_pain',patterns:[/жж\w*\s+при\s+мочеиспускан\w*/,/жж\w*\s+при\s+моч\w*/,/боль\w*\s+моч\w*/,/больно\s+пис\w*/]}
+ ];
+ return rules.filter(r=>r.patterns.some(p=>p.test(value))).map(r=>({code:r.code,severity:0,notes:text.trim()}));
+}
